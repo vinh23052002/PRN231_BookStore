@@ -1,0 +1,202 @@
+﻿@model IEnumerable<Client.Models.AuthorResponse>
+@{
+}
+
+<h2>Enter Author Information</h2>
+
+<form class="justify-content-between mb-4">
+
+    <div class="d-flex mb-3">
+        <label style="width:200px">Author ID:  </label>
+        <input type="text" id="authorId" />
+
+        <label style="width:200px;margin-left:100px">First Name:  </label>
+        <input type="text" id="firstName" />
+    </div>
+
+    <div class="d-flex mb-3">
+        <label style="width:200px">Last Name:  </label>
+        <input type="text" id="lastName" />
+
+        <label style="width: 200px; margin-left: 100px">City: </label>
+        <input type="text" id="city" />
+    </div>
+
+
+    <div class="d-flex mb-3">
+        <label style="width:200px">Email Address: </label>
+        <input type="text" id="email" />
+    </div>
+
+    <div style="margin-left: 400px">
+        <button class="btn-outline-secondary" onclick="updateAuthor()">Save</button>
+        <button class="btn-outline-secondary ml-5 mr-5 w-20" type="reset">Clear</button>
+        <button class="btn-outline-secondary" onclick="addAuthor()">Add</button>
+    </div>
+</form>
+
+<h2>Authors</h2>
+<table class="table">
+    <thead class="thead-dark">
+        <tr>
+            <th scope="col">AuthorId</th>
+            <th scope="col">FirstName</th>
+            <th scope="col">LastName</th>
+            <th scope="col">City</th>
+            <th scope="col">Email</th>
+            <th scope="col">Action</th>
+
+        </tr>
+    </thead>
+    <tbody id="tbody">
+        @foreach (var item in Model)
+        {
+            <tr id="@item.author_id">
+                <th class="authorId" scope="row">@item.author_id</th>
+                <td class="firstName">@item.first_name</td>
+                <td class="lastName">@item.last_name</td>
+                <td class="city">@item.city</td>
+                <td class="email">@item.email_address</td>
+                <td>
+                    <a href="#" onclick="getItem(@item.author_id)">Edit</a>|
+                    <a href="#" onclick="deleteAuthor(@item.author_id)">Delete</a>
+
+                </td>
+            </tr>
+        }
+
+    </tbody>
+</table>
+<script>
+    const getItem = (id) => {
+        event.preventDefault()
+        var tr = document.getElementById(id)
+        var data = {
+            authorId: tr.querySelector(".authorId").textContent,
+            firstName: tr.querySelector(".firstName").textContent,
+            lastName: tr.querySelector('.lastName').textContent,
+            city: tr.querySelector('.city').textContent,
+            email: tr.querySelector('.email').textContent,
+        }
+        authorId.value = id
+        firstName.value = data.firstName
+        lastName.value = data.lastName
+        email.value = data.email
+        city.value = data.city
+    }
+
+</script>
+
+<script>
+    const getDataForm = () => {
+        return {
+            first_name: firstName.value,
+            last_name: lastName.value,
+            city: city.value,
+            email_address: email.value
+        }
+    }
+</script>
+
+<script>
+    const addAuthor = () => {
+        event.preventDefault()
+        var url = "http://localhost:5069/api/Authors"
+        var data = getDataForm()
+
+        var config = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        }
+
+        fetch(url, config)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Error in add Author")
+                }
+                return response.json();
+            })
+            .then(res => {
+                console.log(res);
+                alert("Add success")
+                var str = `
+                    <tr id="${res.author_id}">
+                        <th class="authorId" scope="row">${res.author_id}</th>
+                        <td class="firstName">${res.first_name}</td>
+                        <td class="lastName">${res.last_name}</td>
+                        <td class="city">${res.city}</td>
+                        <td class="email">${res.email_address}</td>
+                        <td>
+                            <a href="#" onclick="getItem(${res.author_id})">Edit</a>|
+                            <a href="#" onclick="deleteAuthor(${res.author_id})">Delete</a>
+
+                        </td>
+                    </tr>
+                `
+
+                document.getElementById("tbody").innerHTML += str
+            })
+    }
+</script>
+
+<script>
+    const deleteAuthor = (id) => {
+        if (confirm("Are you sure!")) {
+            event.preventDefault()
+            var url = "http://localhost:5069/api/Authors/" + id
+
+            var config = {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            }
+
+            fetch(url, config)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Error in delete Author")
+                    }
+                    document.getElementById(id).remove()
+                })
+        }
+
+    }
+</script>
+
+<script>
+    const updateAuthor = () => {
+        event.preventDefault()
+        var url = "http://localhost:5069/api/Authors/" + authorId.value
+
+        var data = getDataForm()
+
+        var config = {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        }
+
+        fetch(url, config)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Error in update Author")
+                }
+                alert("Update Success")
+                var tr = document.getElementById(authorId.value)
+
+
+                tr.querySelector(".firstName").textContent = data.first_name
+                tr.querySelector('.lastName').textContent = data.last_name
+                tr.querySelector('.city').textContent = data.city
+                tr.querySelector('.email').textContent = data.email_address
+            })
+
+    }
+</script>
+

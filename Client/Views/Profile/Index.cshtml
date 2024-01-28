@@ -1,0 +1,58 @@
+﻿@model Client.Models.LoginResponse
+@{
+}
+<h2>User Profile: @Model.email_address</h2>
+
+<form class="justify-content-between mb-4">
+
+    <div class="d-flex mb-3">
+        <label style="width:200px">First Name:  </label>
+        <input type="text" id="firstName" value="@Model.first_name" />
+    </div>
+
+    <div class="d-flex mb-3">
+        <label style="width:200px">Middle Name: </label>
+        <input type="text" id="middleName" value="@Model.middle_name" />
+    </div>
+
+    <div class="d-flex mb-3">
+        <label style="width:200px">Last Name:  </label>
+        <input type="text" id="lastName" value="@Model.last_name" />
+    </div>
+
+
+    <div style="margin-left: 200px">
+        <button class="btn-outline-secondary" onclick="update()">Update</button>
+
+    </div>
+</form>
+
+<script>
+    const update = () => {
+        event.preventDefault();
+        var data = {
+            first_name: firstName.value,
+            middle_name: middleName.value,
+            last_name: lastName.value
+        }
+        var config = {
+            method: "PUT",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        }
+        var url = "http://localhost:5069/api/Users/" + @Model.user_id
+
+        console.log(data)
+        fetch(url, config)
+            .then(res => {
+                if (res.ok) {
+                    alert("Update Successfully!")
+                }
+                else {
+                    alert("Update Information Failed!")
+                }
+            })
+    }
+</script>

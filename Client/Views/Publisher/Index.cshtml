@@ -1,0 +1,180 @@
+﻿@model IEnumerable<Client.Models.PublisherResponse>
+@{
+}
+
+<h2>Enter Publisher Information</h2>
+
+<form class="justify-content-between mb-4">
+
+    <div class="d-flex mb-3">
+        <label style="width:200px">Publisher ID:  </label>
+        <input type="text" id="publisherId" />
+    </div>
+
+    <div class="d-flex mb-3">
+        <label style="width:200px">Publisher Name:  </label>
+        <input type="text" id="publisherName" />
+    </div>
+
+    <div class="d-flex mb-3">
+        <label style="width:200px">City: </label>
+        <input type="text" id="city" />
+    </div>
+
+    <div style="margin-left: 200px">
+        <button class="btn-outline-secondary" onclick="updatePublisher()">Save</button>
+        <button class="btn-outline-secondary" type="reset">Clear</button>
+        <button class="btn-outline-secondary" onclick="addPublisher()">Add</button>
+    </div>
+</form>
+
+<h2>Publisher</h2>
+<table class="table">
+    <thead class="thead-dark">
+        <tr>
+            <th scope="col">PublisherId</th>
+            <th scope="col">PublishserName</th>
+            <th scope="col">City</th>
+            <th scope="col">Action</th>
+
+        </tr>
+    </thead>
+    <tbody id="tbody">
+        @foreach (var item in Model)
+        {
+            <tr id="@item.pub_id">
+                <th class="publisherId" scope="row">@item.pub_id</th>
+                <td class="publisherName">@item.publisher_name</td>
+                <td class="city">@item.city</td>
+                <td>
+                    <a href="#" onclick="getItem(@item.pub_id)">Edit</a>|
+                    <a href="#" onclick="deletePublisher(@item.pub_id)">Delete</a>
+
+                </td>
+            </tr>
+        }
+
+    </tbody>
+</table>
+<script>
+    const getItem = (id) => {
+        event.preventDefault()
+        var tr = document.getElementById(id)
+        var data = {
+            publisherName: tr.querySelector(".publisherName").textContent,
+            city: tr.querySelector('.city').textContent
+        }
+        publisherId.value = id
+        publisherName.value = data.publisherName
+        city.value = data.city
+    }
+
+</script>
+
+<script>
+    const getDataForm = () => {
+        return {
+            publisher_name: publisherName.value,
+            city: city.value
+        }
+    }
+</script>
+
+<script>
+    const addPublisher = () => {
+        event.preventDefault()
+        var url = "http://localhost:5069/api/Publishers"
+
+        var tr = document.getElementById(publisherId.value)
+        var data = getDataForm()
+
+        var config = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        }
+
+        fetch(url, config)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Error in add Publisher")
+                }
+                return response.json();
+            })
+            .then(res => {
+                console.log(res);
+                alert("Add success")
+                var str = `
+                <tr id="${res.pub_id}">
+                    <th class="publisherId" scope="row">${res.pub_id}</th>
+                    <td class="publisherName">${data.publisher_name}</td>
+                    <td class="city">${data.city}</td>
+                    <td>
+                        <a href="#" onclick="getItem(${res.pub_id})">Edit</a>|
+                        <a href="#" onclick="deletePublisher(${res.pub_id})">Delete</a>
+
+                    </td>
+                </tr>
+                `
+                document.getElementById("tbody").innerHTML += str
+            })
+    }
+</script>
+
+<script>
+    const deletePublisher = (id) => {
+        if (confirm("Are you sure!")) {
+            event.preventDefault()
+            var url = "http://localhost:5069/api/Publishers/" + id
+
+            var config = {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            }
+
+            fetch(url, config)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Error in delete Publisher")
+                    }
+                    document.getElementById(id).remove()
+                })
+        }
+
+    }
+</script>
+
+<script>
+    const updatePublisher = () => {
+        event.preventDefault()
+        var url = "http://localhost:5069/api/Publishers/" + publisherId.value
+
+        var data = getDataForm()
+
+        var config = {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        }
+
+        fetch(url, config)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Error in update Publisher")
+                }
+                alert("Update Success")
+                var tr = document.getElementById(publisherId.value)
+
+                tr.querySelector(".publisherName").textContent = publisherName.value
+                tr.querySelector('.city').textContent = city.value
+            })
+
+    }
+</script>
+

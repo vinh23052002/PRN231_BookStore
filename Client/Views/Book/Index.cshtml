@@ -1,0 +1,263 @@
+﻿@model IEnumerable<Client.Models.BookResponse>
+@{
+}
+
+<h2>Enter Book Information</h2>
+
+<form class="justify-content-between mb-4">
+
+    <div class="d-flex mb-3">
+        <label style="width:200px">Book ID:  </label>
+        <input type="text" id="book_id" />
+
+        <label style="width: 100px; margin-left: 100px">Title:  </label>
+        <input type="text" id="title" required />
+    </div>
+
+    <div class="d-flex mb-3">
+        <label style="width:200px">Type: </label>
+        <input type="text" id="type" />
+
+        <label style="width: 100px; margin-left: 100px">Price: </label>
+        <input type="text" id="price" />
+    </div>
+
+    <div class="d-flex mb-3">
+        <label style="width:200px">Publisher Date: </label>
+        <input type="date" id="publisher_date" />
+
+        <label style="width: 100px; margin-left: 140px">Note: </label>
+        <input type="text" id="notes" />
+    </div>
+
+    <div style="margin-left: 300px">
+        <button class="btn-outline-secondary" onclick="updateBook()">Save</button>
+        <button class="btn-outline-secondary ml-5 mr-5 w-20" type="reset">Clear</button>
+        <button class="btn-outline-secondary" onclick="addBook()">Add</button>
+    </div>
+</form>
+
+<div class="d-flex">
+    <h2>Books</h2>
+
+    <form action="/Book" method="get" class="ml-5">
+
+        <select name="type" class=" col-form-label" style="font-weight:bold">
+            <option value="1">Title</option>
+            <option value="2">Price</option>
+        </select>
+        <span>
+            <input name="searchString" class=" col-form-label" style="width:300px" id="search" />
+            <button class="btn btn-primary" type="submit">Search</button>
+        </span>
+    </form>
+
+</div>
+
+<table class="table">
+    <thead class="thead-dark">
+        <tr>
+            <th scope="col">BookId</th>
+            <th scope="col">Title</th>
+            <th scope="col">Type</th>
+            <th scope="col">Price</th>
+            <th scope="col">Publisher Date</th>
+            <th scope="col">Note</th>
+            <th scope="col">Action</th>
+
+        </tr>
+    </thead>
+    <tbody id="tbody">
+        @foreach (var item in Model)
+        {
+            <tr id="@item.book_id">
+                <th class="bookId" scope="row">@item.book_id</th>
+                <td class="title">@item.title</td>
+                <td class="type">@item.type</td>
+                <td class="price">@item.price</td>
+                <td class="date">@item.publisher_date</td>
+                <td class="note">@item.notes</td>
+                <td>
+                    <a href="#" onclick="getItem(@item.book_id)">Edit</a>|
+                    <a href="#" onclick="deleteBook(@item.book_id)">Delete</a>
+
+                </td>
+            </tr>
+        }
+
+    </tbody>
+</table>
+<script>
+    const convertToDateFormat = (inputDate) => {
+        const date = new Date(inputDate);
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const dateCells = document.querySelectorAll('.date');
+
+    dateCells.forEach(cell => {
+        const originalDate = cell.textContent;
+        const convertedDate = convertToDateFormat(originalDate);
+        cell.textContent = convertedDate;
+    });
+</script>
+<script>
+    const getItem = (id) => {
+        event.preventDefault()
+        var tr = document.getElementById(id)
+        var data = {
+            title: tr.querySelector(".title").textContent,
+            type: tr.querySelector('.type').textContent,
+            price: tr.querySelector('.price').textContent,
+            date: tr.querySelector('.date').textContent,
+            note: tr.querySelector('.note').textContent,
+        }
+        book_id.value = id
+        title.value = data.title
+        type.value = data.type
+        price.value = data.price
+        publisher_date.value = data.date
+        notes.value = data.note
+    }
+
+</script>
+
+<script>
+    const getFormData = () => {
+        const formData = {
+
+            pub_id: 1,
+            title: document.getElementById('title').value,
+            type: document.getElementById('type').value,
+            price: document.getElementById('price').value,
+            publisher_date: document.getElementById('publisher_date').value,
+            notes: document.getElementById('notes').value,
+        };
+        return formData;
+    }
+</script>
+
+<script>
+    const addBook = () => {
+        event.preventDefault();
+        var url = "http://localhost:5069/api/Books";
+
+        var tr = document.getElementById(book_id.value);
+        var data = getFormData();
+        /*        console.log(data);*/
+
+
+        var config = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        };
+
+        fetch(url, config)
+            .then(response => {
+                if (!response.ok) {
+                    return new Error("Error in Add Book")
+                }
+                return response.json();
+            })
+            .then(res => {
+
+                console.log(res);
+                alert("Add success");
+                var str = `
+                    <tr id="${res.book_id}">
+                        <th class="bookId" scope="row">${res.book_id}</th>
+                        <td class="title">${data.title}</td>
+                        <td class="type">${data.type}</td>
+                        <td class="price">${data.price}</td>
+                        <td class="date">${convertToDateFormat(res.publisher_date)}</td>
+                        <td class="note">${data.notes}</td>
+                        <td>
+                            <a href="#" onclick="getItem(${res.book_id})">Edit</a>|
+                            <a href="#" onclick="deleteBook(${res.book_id})">Delete</a>
+                        </td>
+                    </tr>
+                    `;
+
+                document.getElementById("tbody").innerHTML += str;
+            })
+    };
+
+</script>
+
+<script>
+    const deleteBook = (id) => {
+        if (confirm("Are you sure!")) {
+            event.preventDefault()
+            var url = "http://localhost:5069/api/Books/" + id
+
+            var config = {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            }
+
+            fetch(url, config)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Error in Delete Book")
+                    }
+                    document.getElementById(id).remove()
+                })
+        }
+
+    }
+</script>
+
+<script>
+    const updateBook = () => {
+        event.preventDefault()
+        var url = "http://localhost:5069/api/Books/" + book_id.value
+
+        var data = getFormData()
+
+        var config = {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        }
+
+        fetch(url, config)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Error in update Book")
+                }
+                alert("Update Success")
+                var tr = document.getElementById(book_id.value)
+
+                tr.querySelector(".title").textContent = data.title
+                tr.querySelector('.type').textContent = data.type
+                tr.querySelector('.price').textContent = data.price
+                tr.querySelector('.date').textContent = data.publisher_date
+                tr.querySelector('.note').textContent = data.notes
+            })
+
+    }
+</script>
+
+<script>
+    // Lấy URL hiện tại
+    var currentUrl = window.location.href;
+
+    // Tạo đối tượng URLSearchParams từ URL
+    var urlParams = new URLSearchParams(currentUrl);
+
+    // Lấy giá trị của tham số searchString
+    var string = urlParams.get('searchString');
+    console.log(string);
+    search.value = string;
+</script>
+
